@@ -1,0 +1,20 @@
+{
+  "name": "node-csio-logger",
+  "version": "0.0.1",
+  "description": "handle conference state",
+  "main": "cs-logger.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "winston": "0.7.3"
+  },
+  "scripts": {
+    "test": "node tests/testCsLogger.js"
+  },
+  "keywords": [
+    "logging"
+  ],
+  "author": "support@callstats.io",
+  "license": "None"
+}

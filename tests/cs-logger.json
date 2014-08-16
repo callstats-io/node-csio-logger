@@ -1,0 +1,7 @@
+{"fileName":"./cs.log",
+  "loggers":{
+    "default":{"level":"INFO"},
+    "coke":{"level":"DEBUG"},
+    "pepsi":{"level":"INFO"}
+    }
+}
