@@ -15,6 +15,12 @@
   "keywords": [
     "logging"
   ],
-  "author": "support@callstats.io",
-  "license": "None"
+  "author": "support-at-callstats.io",
+  "contributors": [
+    {
+      "name": "Shaohong Li",
+      "email": "shaohong.li-at-callstats.io"
+    }
+  ],
+  "license": "Apache License"
 }
