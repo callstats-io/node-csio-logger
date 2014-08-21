@@ -1,4 +1,5 @@
-{"fileName":"./cs.log",
+{"fileName":"./testConfig.log",
+  "maxSize":10000000,
   "loggers":{
     "default":{"level":"INFO"},
     "coke":{"level":"DEBUG"},

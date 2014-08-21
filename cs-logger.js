@@ -30,13 +30,25 @@ var _level = {
 };
 
 /**
+ * convert a string to a enumerated item in _level
+ * @param levelStr
+ */
+function parseLevel(levelStr) {  
+  for (var enumItem in _level) {
+    if (_level.hasOwnProperty(enumItem)) {
+        if (_level[enumItem].name === levelStr.toLowerCase()) {
+          return _level[enumItem];
+        }
+    }
+  }
+  
+  var errMsg = util.format("can not parse level str: %s", levelStr);
+  util.debug(errMsg);
+  throw errMsg;
+}
+
+/**
  * compare two levels and return -1 if l1 < l2, 0 if l1 == l2, 1 if l1 > l2
- * 
- * @param l1
- *            a level
- * @param l2
- *            a level
- * @returns
  */
 function compareLevels(l1, l2) {
   if (l1.value < l2.value)
@@ -50,33 +62,37 @@ function compareLevels(l1, l2) {
 
 //load the config file
 var fs = require('fs');
-var configFileName = 'cs-logger.json';
-var _logger = new (winston.Logger)({
-  transports : [
-  // it will be nice to reset the log level dynamically
-  new (winston.transports.File)({
-    filename : './cs.log',
-    timestamp : true,
-    level : 'debug'
-  }) ],
-  exceptionHandlers : [ new winston.transports.File({
-    filename : './exceptions.log'
-  }) ]
-});
 
-var _loggerConfig = null;
+// the default logger config
+var _loggerConfig = {
+    fileName :'./cs.log',
+    maxSize : 10 * 1024 * 1024, // Max size in bytes of the logfile
+    loggers:{
+      "default":{"level":"debug"}
+    }
+};
 
-var configFileExists = fs.existsSync(configFileName);
-
-if (configFileExists) {
-  var data = fs.readFileSync(configFileName, 'utf8');
-    
-    _loggerConfig = JSON.parse(data);
-
-    console.dir(_loggerConfig);
+/**
+ * create the actual logger object based on the _loggerConfig
+ * @returns {winston.Logger}
+ */
+function createLogger() {
+  return new (winston.Logger)({
+    transports : [
+    new (winston.transports.File)({
+      filename : _loggerConfig.fileName,
+      timestamp : true,
+      level : "debug",
+      maxsize: _loggerConfig.maxSize
+    }) ],
+    exceptionHandlers : [ new winston.transports.File({
+      filename : _loggerConfig.fileName,
+      timestamp: true,
+    }) ]
+  });
 }
 
-
+var _theRealLogger = createLogger();
 
 /**
  * Get a logger object for the given module
@@ -85,13 +101,27 @@ function getLogger(moduleName) {
 
   var logger = {};
 
-  // need a better way to set log level
-  var _logLevel = _level.DEBUG;
+  // use the default level as the initial value
+  var _logLevel = parseLevel(_loggerConfig.loggers["default"].level);
+
+  // if the moduleName exists as a logger in the configFile, use that one
+  if (_loggerConfig) {
+
+    for ( var loggerName in _loggerConfig.loggers) {
+      if (_loggerConfig.loggers.hasOwnProperty(loggerName)
+          && (loggerName.toLowerCase() === moduleName.toLowerCase())) {
+        
+        // override the _logLevel with configured level
+        _logLevel = parseLevel(_loggerConfig.loggers[loggerName].level);
+        break;
+      }
+    }
+  }
 
   logger.moduleName = moduleName;
 
-  logger.setLevel = function(newLevel) {
-    _logLevel = newLevel;
+  logger.setLevel = function(newLevelStr) {
+    _logLevel = parseLevel(newLevelStr);
   };
 
   logger.debug = function() {
@@ -110,6 +140,7 @@ function getLogger(moduleName) {
     _writeLog(_level.ERROR, arguments);
   };
 
+  // the actual log output logic
   function _writeLog(logLevel, args) {
 
     // we only log the message if logLevel is higher than the '_level' set to
@@ -124,14 +155,63 @@ function getLogger(moduleName) {
     }
     var msg = util.format.apply(null, args);
 
-    _logger.log(logLevel.name, msg, {
+    _theRealLogger.log(logLevel.name, msg, {
       module : logger.moduleName
     });
 
-  }
-  ;
+  };
 
   return logger;
 };
 
+/**
+ * check whether the config is valid or not
+ * @param configObj
+ * @returns {Boolean}
+ */
+function isValidConfig(configObj) {
+  return true;
+}
+
+/**
+ * use the provided configFile to set the logger properties,
+ * such as outputFileName, default level, level for named logger, ... etc
+ * 
+ * @param configFileName
+ */
+function loadConfig(configFileName) {
+  // load the config file
+  var fs = require('fs');
+
+  var configFileExists = fs.existsSync(configFileName);
+
+  if (! configFileExists) {
+    var errorMsg = util.format("couldn't find log config file: %s", configFileName);
+    util.debug(errorMsg);
+    throw errorMsg;
+  }
+  
+  var data = fs.readFileSync(configFileName, 'utf8');
+
+  var candidateConfig = JSON.parse(data);
+
+  //console.dir(candidateConfig);
+  
+  if (!isValidConfig(candidateConfig)) {
+    var errorMsg = util.format("invalid config json: %s", candidateConfig);
+    util.debug(errorMsg);
+    throw errorMsg;
+  }
+  
+  _loggerConfig = candidateConfig;
+  // use the config to recreate the real logger object
+  _theRealLogger = createLogger();
+  return
+}
+
 exports.getLogger = getLogger;
+exports.loadConfig = loadConfig;
+
+// export this just for testing
+exports.parseLevel = parseLevel;
+
