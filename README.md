@@ -1,20 +1,21 @@
 node-csio-logger
 ================
 
-node-csio-logger is a thin wrapper to winston.
-Think of it as npmlog meets winston.
+node-csio-logger is a thin wrapper to winston logger with very simple APIs.
 
 Our specific requirements
-- [ ] write to file
-- [ ] log level specified per module
+- [x] write to file
+- [x] log level specified per module
 - [ ] ability to change log level during runtime
 
 ## Usage instructions:
 
 - Add to `package.json`
 
-```
-
+```js
+  "dependencies": {
+    "node-csio-logger": "git://github.com/dialogue-io/node-csio-logger#master"
+  }
 ```
 
 - Install using NPM
@@ -26,38 +27,36 @@ $ npm install
 - bind your code
 
 ```js
-var log = require('node-csio-logger');
+var logging = require('node-csio-logger');
 
 // if defined, get module's log-level.
 // can change during runtime.
-var logCoke = log.getLogger('coke');
+var cokeLogger = logging.getLogger('coke');
 
-logCoke.debug("this is debug line %d", 10);
+cokeLogger.debug("this is debug line %d", 10);
 
-logCoke.info('test message %s, %s', 'first', 'second');
+cokeLogger.info('test message %s, %s', 'first', 'second');
 
 ```
 
-- configuration file: you can configure a default log level, and/or specify a
-log level for a particular module. The js fetches the configuration via `getLogger()`.
-
-```json
-{
-  "fileName":"./cs.log",
-  "loggers":{
-    "default":{"level":"ERROR"},
-    /*Specific modules can have different LOG LEVEL*/
-    "coke":{"level":"DEBUG"},
-  }
-}
-```
-
-- Configuration LOG_LEVEL prints everything at that level and above. For example,
-DEBUG prints every log while ERROR just prints error logs.
+- The level of a logger defines the minimum priority of the messages that will be written to the output file. For example, if a logger is set to level "info" than all `logger.debug(message)` call will not generate log output.
 
 ```
   DEBUG   : logger.debug
-, INFO    : logger.info
-, WARNING : logger.warn
-, ERROR   : logger.error
+  INFO    : logger.info
+  WARNING : logger.warn
+  ERROR   : logger.error
+```
+
+- configuration file: The default output filename is 'cs.log' and the default level is "debug". You can use configuration files to specify default log level and log level for particular modules. The configuration can be picked up by calling  `loadConfig(configFileName)`.
+
+```json
+{"fileName":"./cs.log",
+  "maxSize":10000000,
+  "loggers":{
+    "default":{"level":"INFO"},
+    "coke":{"level":"DEBUG"},
+    "pepsi":{"level":"INFO"}
+    }
+}
 ```
