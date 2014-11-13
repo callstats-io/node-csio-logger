@@ -22,7 +22,7 @@ function testUsingConfig() {
   var cokeLogger = cslogging.getLogger('Coke');
   
   cokeLogger.debug("This line should be logged #1");
-
+  
   cokeLogger.info("This line should be logged #2");
   
   // logger 'joke' is not defined in the logger config. So it will use default level, which is 'INFO'
