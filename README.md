@@ -29,8 +29,8 @@ $ npm install
 ```js
 var logging = require('node-csio-logger');
 
-// if defined, get module's log-level.
-// can change during runtime.
+//retrieve a logger for a module. The minimum loglevel is either the default level
+//or a level defined spcifically for the given module.
 var cokeLogger = logging.getLogger('coke');
 
 cokeLogger.debug("this is debug line %d", 10);
@@ -39,7 +39,7 @@ cokeLogger.info('test message %s, %s', 'first', 'second');
 
 ```
 
-- The level of a logger defines the minimum priority of the messages that will be written to the output file. For example, if a logger is set to level "info" than all `logger.debug(message)` call will not generate log output.
+- The level of a logger defines the minimum priority of the messages that will be written to the output file. For example, if a logger is set to level "info" then all `logger.debug(message)` call will not generate log output.
 
 ```
   DEBUG   : logger.debug
