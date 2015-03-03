@@ -37,6 +37,11 @@ cokeLogger.debug("this is debug line %d", 10);
 
 cokeLogger.info('test message %s, %s', 'first', 'second');
 
+//logging the message together with metaData as the 1st argument
+//we consider the first argument as a metaData if it is an plain object (created using "{}" or "new Object")
+var metaInfo = {"provider": "ISP", "appID": 234};
+cokeLogger.info(metaInfo, 'The message will be logged together with some metaInfo');
+
 ```
 
 - The level of a logger defines the minimum priority of the messages that will be written to the output file. For example, if a logger is set to level "info" then all `logger.debug(message)` call will not generate log output.

@@ -1,8 +1,8 @@
 /**
  * our own version of the logging module. Abstract away the selected logging
  * module such as 'winston' or 'log4js'
- * 
- * 
+ *
+ *
  */
 
 // ---- copied from
@@ -29,11 +29,38 @@ var _level = {
   }
 };
 
+/*
+we consider the first argument in the log(xx...) as a metaData if it is an plain object (created using "{}" or "new Object")
+*/
+var _objectConstructor = {}.constructor;
+function isMetaData(anObj) {
+  if (anObj.constructor === _objectConstructor) {
+      return true;
+  }
+  return false;
+}
+
+/**
+  copied from http://stackoverflow.com/questions/171251/how-can-i-merge-properties-of-two-javascript-objects-dynamically
+
+ * Merge attributes of two objects.
+ * Attributes with the same name in obj2 will overrite the ones in obj1
+ * @param obj1
+ * @param obj2
+ * @returns a new object with merged attributes
+ */
+function merge_attributes(obj1,obj2){
+  var obj3 = {};
+  for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+  for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+  return obj3;
+}
+
 /**
  * convert a string to a enumerated item in _level
  * @param levelStr
  */
-function parseLevel(levelStr) {  
+function parseLevel(levelStr) {
   for (var enumItem in _level) {
     if (_level.hasOwnProperty(enumItem)) {
         if (_level[enumItem].name === levelStr.toLowerCase()) {
@@ -41,7 +68,7 @@ function parseLevel(levelStr) {
         }
     }
   }
-  
+
   var errMsg = util.format("can not parse level str: %s", levelStr);
   util.debug(errMsg);
   throw errMsg;
@@ -110,7 +137,7 @@ function getLogger(moduleName) {
     for ( var loggerName in _loggerConfig.loggers) {
       if (_loggerConfig.loggers.hasOwnProperty(loggerName)
           && (loggerName.toLowerCase() === moduleName.toLowerCase())) {
-        
+
         // override the _logLevel with configured level
         _logLevel = parseLevel(_loggerConfig.loggers[loggerName].level);
         break;
@@ -148,16 +175,28 @@ function getLogger(moduleName) {
     if (compareLevels(logLevel, _logLevel) < 0)
       return;
 
+    // converts the args to an array
     var msgArgs = Array.prototype.slice.call(args);
 
+    // remove trailing nulls if any
     while (msgArgs[msgArgs.length - 1] === null) {
       msgArgs.pop();
     }
-    var msg = util.format.apply(null, args);
 
-    _theRealLogger.log(logLevel.name, msg, {
-      module : logger.moduleName
-    });
+    if (msgArgs.length === 0) {
+      return;
+    }
+
+    var metaData = {module : logger.moduleName};
+    //check if the first argument is an meta data object
+    if (isMetaData(msgArgs[0]) && (msgArgs.length > 1)) {
+      metaData = merge_attributes(metaData, msgArgs[0]);
+      msgArgs = msgArgs.slice(1); // remove the metaData from msg rendering
+    }
+
+    var msg = util.format.apply(null, msgArgs);
+
+    _theRealLogger.log(logLevel.name, msg, metaData);
 
   };
 
@@ -176,7 +215,7 @@ function isValidConfig(configObj) {
 /**
  * use the provided configFile to set the logger properties,
  * such as outputFileName, default level, level for named logger, ... etc
- * 
+ *
  * @param configFileName
  */
 function loadConfig(configFileName) {
@@ -190,19 +229,19 @@ function loadConfig(configFileName) {
     util.debug(errorMsg);
     throw errorMsg;
   }
-  
+
   var data = fs.readFileSync(configFileName, 'utf8');
 
   var candidateConfig = JSON.parse(data);
 
   //console.dir(candidateConfig);
-  
+
   if (!isValidConfig(candidateConfig)) {
     var errorMsg = util.format("invalid config json: %s", candidateConfig);
     util.debug(errorMsg);
     throw errorMsg;
   }
-  
+
   _loggerConfig = candidateConfig;
   // use the config to recreate the real logger object
   _theRealLogger = createLogger();
@@ -214,4 +253,5 @@ exports.loadConfig = loadConfig;
 
 // export this just for testing
 exports.parseLevel = parseLevel;
+exports.isMetaData = isMetaData;
 
