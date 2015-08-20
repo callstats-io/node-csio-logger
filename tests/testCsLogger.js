@@ -19,6 +19,19 @@ function testLogging() {
 
   cokeLogger.error("an error line");
 
+  var err = {res: 2, reason: 'someReason'};
+
+  cokeLogger.info("redisAuth connection error: " + err);
+
+  cokeLogger.info("redisAuth connection error: ", err);
+
+  cokeLogger.info("a", "b", "c", "d");
+
+  cokeLogger.info("redisAuth connection error: %s", err);
+
+  //log.info("event: ", fabEvent, appID, userID);
+
+
   setTimeout(function() {
     cokeLogger.info("%s testing testLogging ", (new Date()).toLocaleTimeString());
     }, 5000);
@@ -53,7 +66,18 @@ function testLoggingWithMetaData() {
 
   var data = { 'min': -1, 'max': 50};
 
-  metaLogger.debug(metaData, "received data: %j", data)
+  metaLogger.debug(metaData, "received data: %j", data);
+
+  metaLogger.debug(metaData, null, null);
+
+  // check that it is OK to have weird parameters
+  metaLogger.info(undefined);
+  metaLogger.info(null, null);
+
+  metaLogger.info(metaData);
+
+  metaLogger.info(metaData, null, null);
+
 }
 
 testLogging();

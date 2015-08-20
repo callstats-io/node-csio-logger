@@ -1,3 +1,6 @@
+/*jslint node: true */
+"use strict";
+
 /**
  * our own version of the logging module. Abstract away the selected logging
  * module such as 'winston' or 'log4js'
@@ -7,8 +10,8 @@
 
 // ---- copied from
 // https://github.com/flatiron/winston#instantiating-your-own-logger
-var winston = require('winston');
-var util = require('util');
+var winston = require("winston");
+var util = require("util");
 
 var _level = {
   DEBUG : {
@@ -34,7 +37,7 @@ we consider the first argument in the log(xx...) as a metaData if it is an plain
 */
 var _objectConstructor = {}.constructor;
 function isMetaData(anObj) {
-  if (anObj.constructor === _objectConstructor) {
+  if ((anObj) && (anObj.constructor === _objectConstructor)) {
       return true;
   }
   return false;
@@ -88,11 +91,11 @@ function compareLevels(l1, l2) {
 }
 
 //load the config file
-var fs = require('fs');
+var fs = require("fs");
 
 // the default logger config
 var _loggerConfig = {
-    fileName :'./cs.log',
+    fileName :"./cs.log",
     maxSize : 10 * 1024 * 1024, // Max size in bytes of the logfile
     loggers:{
       "default":{"level":"debug"}
@@ -135,8 +138,7 @@ function getLogger(moduleName) {
   if (_loggerConfig) {
 
     for ( var loggerName in _loggerConfig.loggers) {
-      if (_loggerConfig.loggers.hasOwnProperty(loggerName)
-          && (loggerName.toLowerCase() === moduleName.toLowerCase())) {
+      if ( _loggerConfig.loggers.hasOwnProperty(loggerName) && (loggerName.toLowerCase() === moduleName.toLowerCase()) ) {
 
         // override the _logLevel with configured level
         _logLevel = parseLevel(_loggerConfig.loggers[loggerName].level);
@@ -194,14 +196,14 @@ function getLogger(moduleName) {
       msgArgs = msgArgs.slice(1); // remove the metaData from msg rendering
     }
 
-    var msg = util.format.apply(null, msgArgs);
+    var msg = util.format.apply(util, msgArgs);
 
     _theRealLogger.log(logLevel.name, msg, metaData);
 
-  };
+  }
 
   return logger;
-};
+}
 
 /**
  * check whether the config is valid or not
@@ -219,8 +221,6 @@ function isValidConfig(configObj) {
  * @param configFileName
  */
 function loadConfig(configFileName) {
-  // load the config file
-  var fs = require('fs');
 
   var configFileExists = fs.existsSync(configFileName);
 
@@ -230,7 +230,7 @@ function loadConfig(configFileName) {
     throw errorMsg;
   }
 
-  var data = fs.readFileSync(configFileName, 'utf8');
+  var data = fs.readFileSync(configFileName, "utf8");
 
   var candidateConfig = JSON.parse(data);
 
@@ -245,7 +245,7 @@ function loadConfig(configFileName) {
   _loggerConfig = candidateConfig;
   // use the config to recreate the real logger object
   _theRealLogger = createLogger();
-  return
+  return;
 }
 
 exports.getLogger = getLogger;
