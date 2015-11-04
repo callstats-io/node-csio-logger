@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "dependencies": {
-    "winston": "0.7.3"
+    "winston": "2.0.0",
+    "glob": "5.0.15"
   },
   "scripts": {
     "test": "node tests/testCsLogger.js"
