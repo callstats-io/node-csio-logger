@@ -5,27 +5,32 @@
  *
  */
 
+/*jslint node: true */
+'use strict';
+
 // ---- copied from
 // https://github.com/flatiron/winston#instantiating-your-own-logger
 var winston = require('winston');
 var util = require('util');
+var fs = require('fs');
+
 
 var _level = {
   DEBUG : {
     value : 0,
-    name : "debug"
+    name : 'debug'
   },
   INFO : {
     value : 10,
-    name : "info"
+    name : 'info'
   },
   WARNING : {
     value : 20,
-    name : "warn"
+    name : 'warn'
   },
   ERROR : {
     value : 30,
-    name : "error"
+    name : 'error'
   }
 };
 
@@ -69,7 +74,7 @@ function parseLevel(levelStr) {
     }
   }
 
-  var errMsg = util.format("can not parse level str: %s", levelStr);
+  var errMsg = util.format('can not parse level str: %s', levelStr);
   util.debug(errMsg);
   throw errMsg;
 }
@@ -87,15 +92,13 @@ function compareLevels(l1, l2) {
   return 1;
 }
 
-//load the config file
-var fs = require('fs');
-
 // the default logger config
 var _loggerConfig = {
-    fileName :'./cs.log',
+    fileName : './cs.log',
     maxSize : 10 * 1024 * 1024, // Max size in bytes of the logfile
+    maxFiles: 10, // The default number of files to keep after rotation
     loggers:{
-      "default":{"level":"debug"}
+      'default':{'level':'debug'}
     }
 };
 
@@ -104,14 +107,18 @@ var _loggerConfig = {
  * @returns {winston.Logger}
  */
 function createLogger() {
-  return new (winston.Logger)({
-    transports : [
-    new (winston.transports.File)({
+  var config_options={
       filename : _loggerConfig.fileName,
       timestamp : true,
-      level : "debug",
-      maxsize: _loggerConfig.maxSize
-    }) ],
+      level : 'debug', // we don't rely on winston to control the level. So set it to higher verbosity here.
+      maxsize: _loggerConfig.maxSize,
+    };
+  if (_loggerConfig.maxFiles) {
+    config_options.maxFiles = _loggerConfig.maxFiles;
+  }
+
+  return new (winston.Logger)({
+    transports : [ new winston.transports.File(config_options) ],
     exceptionHandlers : [ new winston.transports.File({
       filename : _loggerConfig.fileName,
       timestamp: true,
@@ -129,14 +136,14 @@ function getLogger(moduleName) {
   var logger = {};
 
   // use the default level as the initial value
-  var _logLevel = parseLevel(_loggerConfig.loggers["default"].level);
+  var _logLevel = parseLevel(_loggerConfig.loggers['default'].level);
 
   // if the moduleName exists as a logger in the configFile, use that one
   if (_loggerConfig) {
 
     for ( var loggerName in _loggerConfig.loggers) {
-      if (_loggerConfig.loggers.hasOwnProperty(loggerName)
-          && (loggerName.toLowerCase() === moduleName.toLowerCase())) {
+      if (_loggerConfig.loggers.hasOwnProperty(loggerName) &&
+         (loggerName.toLowerCase() === moduleName.toLowerCase())) {
 
         // override the _logLevel with configured level
         _logLevel = parseLevel(_loggerConfig.loggers[loggerName].level);
@@ -198,10 +205,10 @@ function getLogger(moduleName) {
 
     _theRealLogger.log(logLevel.name, msg, metaData);
 
-  };
+  }
 
   return logger;
-};
+}
 
 /**
  * check whether the config is valid or not
@@ -209,7 +216,9 @@ function getLogger(moduleName) {
  * @returns {Boolean}
  */
 function isValidConfig(configObj) {
-  return true;
+  // TO-DO: check whether the give config is valid
+  if (configObj) return true;
+  return false;
 }
 
 /**
@@ -219,8 +228,6 @@ function isValidConfig(configObj) {
  * @param configFileName
  */
 function loadConfig(configFileName) {
-  // load the config file
-  var fs = require('fs');
 
   var configFileExists = fs.existsSync(configFileName);
 
@@ -237,15 +244,16 @@ function loadConfig(configFileName) {
   //console.dir(candidateConfig);
 
   if (!isValidConfig(candidateConfig)) {
-    var errorMsg = util.format("invalid config json: %s", candidateConfig);
+    var errorMsg = util.format('invalid config json: %s', candidateConfig);
     util.debug(errorMsg);
     throw errorMsg;
   }
 
   _loggerConfig = candidateConfig;
+
   // use the config to recreate the real logger object
   _theRealLogger = createLogger();
-  return
+
 }
 
 exports.getLogger = getLogger;
