@@ -1,6 +1,6 @@
 {
   "name": "node-csio-logger",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "handle conference state",
   "main": "cs-logger.js",
   "directories": {

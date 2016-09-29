@@ -75,7 +75,7 @@ function parseLevel(levelStr) {
   }
 
   var errMsg = util.format('can not parse level str: %s', levelStr);
-  util.debug(errMsg);
+  console.error(errMsg);
   throw errMsg;
 }
 
@@ -98,7 +98,7 @@ var _loggerConfig = {
     maxSize : 10 * 1024 * 1024, // Max size in bytes of the logfile
     maxFiles: 10, // The default number of files to keep after rotation
     loggers:{
-      'default':{'level':'debug'}
+      'default':{'level':'INFO'}
     }
 };
 
@@ -233,7 +233,7 @@ function loadConfig(configFileName) {
 
   if (! configFileExists) {
     var errorMsg = util.format("couldn't find log config file: %s", configFileName);
-    util.debug(errorMsg);
+    console.error(errorMsg);
     throw errorMsg;
   }
 
@@ -245,7 +245,7 @@ function loadConfig(configFileName) {
 
   if (!isValidConfig(candidateConfig)) {
     var errorMsg = util.format('invalid config json: %s', candidateConfig);
-    util.debug(errorMsg);
+    console.error(errorMsg);
     throw errorMsg;
   }
 

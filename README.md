@@ -53,7 +53,7 @@ cokeLogger.info(metaInfo, 'The message will be logged together with some metaInf
   ERROR   : logger.error
 ```
 
-- configuration file: The default output filename is 'cs.log' and the default level is "debug". You can use configuration files to specify default log level and log level for particular modules. The configuration can be picked up by calling  `loadConfig(configFileName)`.
+- configuration file: The default output filename is 'cs.log' and the default level is "INFO". You can use configuration files to specify default log level and log level for particular modules. The configuration can be picked up by calling  `loadConfig(configFileName)`.
 
 ```json
 {"fileName":"./cs.log",
